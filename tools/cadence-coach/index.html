@@ -1,0 +1,940 @@
+<title>Cadence Coach</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,200;0,6..72,300;0,6..72,400;1,6..72,300&display=swap">
+
+<style>
+:root{
+  --bg:#E7ECEA;
+  --surface:#F7FAF9;
+  --sunk:#DDE4E2;
+  --ink:#111917;
+  --muted:#5D6D6A;
+  --faint:#8C9B98;
+  --line:#C8D2CF;
+  --good:#0C7361;
+  --good-soft:#0c73611f;
+  --warn:#9C6A12;
+  --hot:#B6403A;
+  --hot-soft:#b6403a17;
+  --band:#0c73610f;
+  --shadow:0 1px 2px rgba(17,25,23,.05),0 8px 24px -12px rgba(17,25,23,.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+  --bg:#0C110F;
+  --surface:#151C1A;
+  --sunk:#101715;
+  --ink:#E4EBE8;
+  --muted:#8B9A96;
+  --faint:#5E6D69;
+  --line:#25302D;
+  --good:#3FCFAE;
+  --good-soft:#3fcfae1a;
+  --warn:#DFA648;
+  --hot:#F0705E;
+  --hot-soft:#f0705e1a;
+  --band:#3fcfae12;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 32px -16px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C110F;
+  --surface:#151C1A;
+  --sunk:#101715;
+  --ink:#E4EBE8;
+  --muted:#8B9A96;
+  --faint:#5E6D69;
+  --line:#25302D;
+  --good:#3FCFAE;
+  --good-soft:#3fcfae1a;
+  --warn:#DFA648;
+  --hot:#F0705E;
+  --hot-soft:#f0705e1a;
+  --band:#3fcfae12;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 32px -16px rgba(0,0,0,.7);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  font-size:15px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:860px;margin:0 auto;padding:34px 22px 80px;display:flex;flex-direction:column;gap:26px}
+
+h1,h2,h3{margin:0;text-wrap:balance;font-family:Newsreader,Georgia,serif;font-weight:300;letter-spacing:-.01em}
+h1{font-size:clamp(30px,5.2vw,46px);line-height:1.08}
+h2{font-size:22px;line-height:1.2}
+p{margin:0}
+.lede{color:var(--muted);max-width:60ch;font-size:16px}
+.eyebrow{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+
+/* ---------- masthead ---------- */
+.masthead{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.mark{display:flex;align-items:baseline;gap:10px}
+.mark .dot{
+  width:7px;height:7px;border-radius:50%;background:var(--faint);
+  transform:translateY(-3px);flex:none;transition:background .3s
+}
+body.live .mark .dot{background:var(--good);animation:breathe 3.4s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:.35}50%{opacity:1}}
+
+/* ---------- cards ---------- */
+.card{
+  background:var(--surface);border:1px solid var(--line);border-radius:14px;
+  box-shadow:var(--shadow);padding:24px;display:flex;flex-direction:column;gap:18px
+}
+.screen{display:none;flex-direction:column;gap:26px}
+.screen.on{display:flex}
+
+/* ---------- buttons ---------- */
+button{font:inherit;color:inherit;cursor:pointer;border-radius:9px;transition:background .15s,border-color .15s,color .15s}
+button:focus-visible{outline:2px solid var(--good);outline-offset:2px}
+.btn{
+  padding:11px 20px;border:1px solid var(--ink);background:var(--ink);
+  color:var(--surface);font-weight:500;letter-spacing:.01em
+}
+.btn:hover{background:transparent;color:var(--ink)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--ink)}
+.btn.quiet{border:none;background:none;color:var(--muted);padding:11px 6px;text-decoration:underline;text-underline-offset:3px}
+.btn.quiet:hover{color:var(--ink)}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+
+/* ---------- segmented presets ---------- */
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--sunk)}
+.seg button{
+  border:none;background:none;padding:8px 14px;border-radius:0;
+  font-size:13px;color:var(--muted);border-right:1px solid var(--line)
+}
+.seg button:last-child{border-right:none}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:500;box-shadow:inset 0 -2px 0 var(--good)}
+
+/* ---------- gauge ---------- */
+.gauge{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:22px;align-items:end}
+.readout{display:flex;flex-direction:column;gap:2px;min-width:0}
+.figure{
+  font-family:Newsreader,Georgia,serif;font-weight:200;font-size:clamp(64px,16vw,104px);
+  line-height:.86;letter-spacing:-.03em;font-variant-numeric:tabular-nums;
+  transition:color .5s ease
+}
+.figure .unit{font-size:.22em;letter-spacing:.14em;color:var(--faint);font-family:"IBM Plex Mono",monospace;margin-left:.5em;vertical-align:.9em}
+.status{
+  font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;
+  color:var(--muted);transition:color .4s
+}
+body.hot .figure,body.hot .status{color:var(--hot)}
+body.warm .figure,body.warm .status{color:var(--warn)}
+
+.cue{
+  align-self:end;text-align:right;display:flex;flex-direction:column;gap:6px;
+  font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--faint);
+  opacity:0;transform:translateY(4px);transition:opacity .4s,transform .4s
+}
+.cue.on{opacity:1;transform:none}
+.cue strong{
+  display:block;font-family:Newsreader,Georgia,serif;font-weight:300;font-style:italic;
+  font-size:28px;color:var(--hot);letter-spacing:0
+}
+
+canvas{display:block;width:100%;border-radius:10px;background:var(--sunk);touch-action:none}
+#trace{height:184px}
+
+.legend{display:flex;justify-content:space-between;gap:12px;font-size:11px;color:var(--faint);letter-spacing:.1em;text-transform:uppercase;font-family:"IBM Plex Mono",monospace}
+
+/* ---------- stat strip ---------- */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.stat{background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:3px}
+.stat .k{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-family:"IBM Plex Mono",monospace}
+.stat .v{font-family:"IBM Plex Mono",monospace;font-size:20px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.stat .v.flag{color:var(--hot)}
+
+/* ---------- calibration ---------- */
+.passage{
+  font-family:Newsreader,Georgia,serif;font-size:clamp(21px,3.4vw,27px);line-height:1.5;
+  font-weight:300;max-width:34ch;
+}
+.passage em{font-style:italic;color:var(--good)}
+.meterbar{height:4px;background:var(--sunk);border-radius:2px;overflow:hidden}
+.meterbar i{display:block;height:100%;background:var(--good);width:0%;transition:width .08s linear}
+
+/* ---------- notes / errors ---------- */
+.note{
+  border-left:2px solid var(--line);padding-left:14px;color:var(--muted);font-size:13.5px;
+  display:flex;flex-direction:column;gap:6px
+}
+.error{border-left-color:var(--hot);color:var(--ink)}
+.error b{color:var(--hot);font-weight:600}
+.hidden{display:none !important}
+
+.tips{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none;counter-reset:t}
+.tips li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:baseline;color:var(--muted);font-size:14px}
+.tips li::before{
+  counter-increment:t;content:counter(t,decimal-leading-zero);
+  font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--faint)
+}
+.tips b{color:var(--ink);font-weight:500}
+
+.history{display:flex;flex-direction:column;gap:8px;font-family:"IBM Plex Mono",monospace;font-size:12.5px}
+.history div{display:flex;justify-content:space-between;gap:14px;color:var(--muted);padding-bottom:8px;border-bottom:1px dashed var(--line)}
+.history div:last-child{border-bottom:none;padding-bottom:0}
+.history b{color:var(--ink);font-weight:500}
+
+footer{color:var(--faint);font-size:12px;line-height:1.7;border-top:1px solid var(--line);padding-top:16px;max-width:64ch}
+
+/* ---------- stealth ---------- */
+body.stealth .wrap{padding:10px 12px;gap:10px;max-width:none}
+body.stealth .hide-stealth{display:none !important}
+body.stealth .card{padding:12px 14px;gap:10px;border-radius:11px}
+body.stealth .figure{font-size:44px}
+body.stealth #trace{height:52px}
+body.stealth .gauge{gap:12px}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important;transition-duration:.001ms !important}
+}
+</style>
+
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="mark">
+      <span class="dot"></span>
+      <span class="eyebrow">Cadence Coach</span>
+    </div>
+    <div class="row">
+      <button class="btn quiet hidden" id="stealthBtn">Compact view</button>
+      <button class="btn quiet hidden" id="stopBtn">End session</button>
+    </div>
+  </div>
+
+  <!-- ============ START ============ -->
+  <section class="screen on" id="s-start">
+    <div>
+      <h1>Talk at a pace people can<br>actually follow.</h1>
+      <p class="lede" style="margin-top:14px">Park this window beside your call. It listens to the rhythm of your voice —
+        never the words — and nudges you when you start outrunning the room.</p>
+    </div>
+
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <div>
+          <div class="eyebrow">Target pace</div>
+          <p style="color:var(--muted);font-size:13.5px;margin-top:4px">Most interviewers follow best between 120 and 150 words a minute.</p>
+        </div>
+        <div class="seg" id="presets" role="group" aria-label="Target pace">
+          <button data-p="deliberate" aria-pressed="false">Deliberate</button>
+          <button data-p="conversational" aria-pressed="true">Conversational</button>
+          <button data-p="energetic" aria-pressed="false">Energetic</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btn" id="calBtn">Calibrate my voice</button>
+        <button class="btn ghost" id="skipBtn">Start without calibrating</button>
+      </div>
+
+      <div class="note" id="micNote" hidden></div>
+    </div>
+
+    <div class="card" id="historyCard" hidden>
+      <div class="eyebrow">Recent sessions</div>
+      <div class="history" id="historyList"></div>
+    </div>
+
+    <ul class="tips">
+      <li><span><b>Wear headphones.</b> Then the mic hears you, not your interviewer, and the numbers stay honest.</span></li>
+      <li><span><b>Calibrate once per setup.</b> Thirty seconds of reading teaches it your mic and your voice, so the pace reading is yours and not a generic average.</span></li>
+      <li><span><b>Practise before you rely on it.</b> Run two or three mock answers with the full view, then switch to the compact bar for the real thing.</span></li>
+    </ul>
+
+    <footer>
+      Audio is analysed inside this page and never sent anywhere. Nothing is recorded, stored, or transcribed —
+      the meter only measures how loudness rises and falls over time, which is enough to count syllables and silences.
+      Pace is an estimate from that envelope, so treat it as a tendency, not a stopwatch.
+    </footer>
+  </section>
+
+  <!-- ============ CALIBRATE ============ -->
+  <section class="screen" id="s-cal">
+    <div>
+      <div class="eyebrow">Calibration · one</div>
+      <h2 style="margin-top:8px">Read this out loud, at the pace you'd want in the room.</h2>
+    </div>
+
+    <div class="card">
+      <p class="passage" id="passage">I like to start with the problem we were trying to solve, then explain what I chose to do, and finish with the result. When I slow down, people follow the story. A short pause after a key point gives it room to land.</p>
+      <div class="meterbar"><i id="calLevel"></i></div>
+      <div class="row" style="justify-content:space-between">
+        <div class="row">
+          <button class="btn" id="calStart">Start reading</button>
+          <button class="btn ghost hidden" id="calDone">I'm done</button>
+        </div>
+        <span class="mono" style="font-size:12px;color:var(--faint)" id="calTimer">0:00</span>
+      </div>
+      <div class="note" id="calNote" hidden></div>
+    </div>
+    <button class="btn quiet" id="calSkip" style="align-self:flex-start">Skip calibration</button>
+  </section>
+
+  <!-- ============ SESSION ============ -->
+  <section class="screen" id="s-live">
+    <div class="card">
+      <div class="gauge">
+        <div class="readout">
+          <div class="status" id="statusWord">Listening</div>
+          <div class="figure" id="wpm">—<span class="unit">wpm</span></div>
+        </div>
+        <div class="cue" id="cue">
+          <strong>ease off</strong>
+          <span id="cueSub">breathe · then keep going</span>
+        </div>
+      </div>
+
+      <canvas id="trace" aria-label="Pace over the last 90 seconds"></canvas>
+      <div class="legend hide-stealth">
+        <span>90 seconds ago</span>
+        <span id="bandLabel">target 120–152</span>
+        <span>now</span>
+      </div>
+    </div>
+
+    <div class="stats hide-stealth">
+      <div class="stat"><span class="k">This answer</span><span class="v" id="segLen">0:00</span></div>
+      <div class="stat"><span class="k">Since a pause</span><span class="v" id="sincePause">0.0s</span></div>
+      <div class="stat"><span class="k">Time over target</span><span class="v" id="overPct">0%</span></div>
+      <div class="stat"><span class="k">Session</span><span class="v" id="elapsed">0:00</span></div>
+    </div>
+
+    <p class="note hide-stealth" id="liveHint">The line is your pace. Keep it inside the band. When it climbs out and stays out,
+      the panel will tell you to ease off — finish the sentence you're in, then take a breath.</p>
+  </section>
+
+  <!-- ============ RECAP ============ -->
+  <section class="screen" id="s-recap">
+    <div>
+      <div class="eyebrow">Session recap</div>
+      <h2 style="margin-top:8px" id="recapVerdict">Nicely paced.</h2>
+    </div>
+
+    <div class="card">
+      <canvas id="recapTrace" style="height:150px"></canvas>
+      <div class="stats">
+        <div class="stat"><span class="k">Average pace</span><span class="v" id="rAvg">—</span></div>
+        <div class="stat"><span class="k">Time over target</span><span class="v" id="rOver">—</span></div>
+        <div class="stat"><span class="k">Longest run, no pause</span><span class="v" id="rRun">—</span></div>
+        <div class="stat"><span class="k">Pauses per minute</span><span class="v" id="rPauses">—</span></div>
+      </div>
+      <p class="note" id="recapAdvice"></p>
+    </div>
+
+    <div class="row">
+      <button class="btn" id="againBtn">Run another</button>
+      <button class="btn quiet" id="homeBtn">Back to start</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+"use strict";
+/* ------------------------------------------------------------------
+   Cadence Coach — local speech-pace meter.
+   Signal chain: mic -> ScriptProcessor -> loudness envelope (dB)
+   -> adaptive noise floor -> voiced/unvoiced -> syllable-nuclei peaks
+   -> rolling words-per-minute. No recognition, no recording.
+------------------------------------------------------------------- */
+
+const $ = (s) => document.querySelector(s);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+const PRESETS = {
+  deliberate:     { lo: 105, hi: 135, name: "Deliberate" },
+  conversational: { lo: 120, hi: 152, name: "Conversational" },
+  energetic:      { lo: 135, hi: 168, name: "Energetic" }
+};
+
+const PASSAGE = { words: 44, syllables: 53 };
+const SYL_PER_WORD = 1.4;      // conversational English
+const WINDOW = 6;              // seconds of wall clock behind the live number
+const PAUSE_MIN = 0.30;        // silence that counts as a breath
+const ANSWER_GAP = 1.5;        // silence that ends an "answer"
+const HOT_SUSTAIN = 3.0;       // seconds above target before we say anything
+const CUE_COOLDOWN = 14;       // seconds between nudges
+
+let preset = "conversational";
+let correction = 1;            // syllable-count calibration factor
+let store = null;
+try { store = window.localStorage; } catch (e) { store = null; }
+
+function load(k, d) { try { const v = store && store.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+function save(k, v) { try { store && store.setItem(k, JSON.stringify(v)); } catch (e) {} }
+
+preset = load("cc.preset", "conversational");
+correction = load("cc.correction", 1);
+
+/* ================= audio engine ================= */
+
+const engine = {
+  ctx: null, stream: null, src: null, proc: null, sink: null,
+  running: false, t: 0,
+  floorDb: -70, envDb: -110, level: -110,
+  peakVal: -Infinity, peakT: 0, lastPeakT: -1,
+  voiced: false, unvoicedRun: 0, voicedRun: 0,
+  syls: [],            // syllable timestamps (s)
+  ring: null, ringN: 0, ringI: 0, hopDur: 0,
+  // accumulators
+  totalVoiced: 0, totalSyl: 0, pauses: 0, segStart: 0, longestSeg: 0,
+  hotTime: 0, lastPauseT: 0, startedAt: 0,
+  wpm: null, hopsSinceTick: 0
+};
+
+async function openMic() {
+  if (engine.ctx) return true;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    throw new Error("unsupported");
+  }
+  const stream = await navigator.mediaDevices.getUserMedia({
+    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: false }
+  });
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  const ctx = new Ctx();
+  await ctx.resume();
+  const src = ctx.createMediaStreamSource(stream);
+  const proc = ctx.createScriptProcessor(2048, 1, 1);
+  // A silent sink keeps the context "playing", which stops browsers from
+  // throttling the analysis when this window sits behind the call.
+  const sink = ctx.createGain();
+  sink.gain.value = 0;
+  src.connect(proc);
+  proc.connect(sink);
+  sink.connect(ctx.destination);
+  proc.onaudioprocess = onAudio;
+
+  engine.ctx = ctx; engine.stream = stream; engine.src = src;
+  engine.proc = proc; engine.sink = sink;
+  engine.hopDur = 256 / ctx.sampleRate;
+  engine.ringN = Math.ceil(14 / engine.hopDur);
+  engine.ring = new Uint8Array(engine.ringN);
+  return true;
+}
+
+function resetMetrics() {
+  const e = engine;
+  e.t = 0; e.floorDb = -70; e.envDb = -110;
+  e.peakVal = -Infinity; e.lastPeakT = -1; e.voiced = false;
+  e.unvoicedRun = 0; e.voicedRun = 0; e.syls = [];
+  e.ring && e.ring.fill(0); e.ringI = 0;
+  e.totalVoiced = 0; e.totalSyl = 0; e.pauses = 0;
+  e.segStart = 0; e.longestSeg = 0; e.hotTime = 0; e.lastPauseT = 0;
+  e.wpm = null; e.hopsSinceTick = 0;
+}
+
+function onAudio(ev) {
+  if (!engine.running) return;
+  const buf = ev.inputBuffer.getChannelData(0);
+  const HOP = 256;
+  for (let off = 0; off + HOP <= buf.length; off += HOP) {
+    let sum = 0;
+    for (let i = 0; i < HOP; i++) { const v = buf[off + i]; sum += v * v; }
+    const db = 20 * Math.log10(Math.sqrt(sum / HOP) + 1e-9);
+    step(db);
+  }
+}
+
+function step(db) {
+  const e = engine;
+  e.t += e.hopDur;
+  // envelope: quick attack, softer release, so syllable peaks survive
+  e.envDb += (db - e.envDb) * (db > e.envDb ? 0.5 : 0.18);
+  e.level = e.envDb;
+  // adaptive noise floor: falls fast, rises slowly
+  e.floorDb += (e.envDb - e.floorDb) * (e.envDb < e.floorDb ? 0.25 : 0.0006);
+  const thr = Math.max(e.floorDb + 9, -58);
+
+  const nowVoiced = e.envDb > thr;
+  if (nowVoiced) {
+    e.voicedRun += e.hopDur;
+    if (e.unvoicedRun >= PAUSE_MIN) {
+      e.pauses++;
+      e.lastPauseT = e.t;
+      if (e.unvoicedRun >= ANSWER_GAP) {
+        e.longestSeg = Math.max(e.longestSeg, (e.t - e.unvoicedRun) - e.segStart);
+        e.segStart = e.t;
+      }
+    }
+    e.unvoicedRun = 0;
+    e.totalVoiced += e.hopDur;
+
+    // syllable nuclei: a local maximum followed by a real dip
+    if (e.envDb > e.peakVal) { e.peakVal = e.envDb; e.peakT = e.t; }
+    if (e.peakVal - e.envDb > 3.5 && e.peakVal > thr + 2 && e.peakT - e.lastPeakT > 0.09) {
+      e.syls.push(e.peakT);
+      e.totalSyl++;
+      e.lastPeakT = e.peakT;
+      e.peakVal = e.envDb;
+    }
+  } else {
+    e.unvoicedRun += e.hopDur;
+    e.voicedRun = 0;
+    if (e.unvoicedRun > 0.12) e.peakVal = -Infinity;
+  }
+  e.voiced = nowVoiced;
+
+  e.ring[e.ringI] = nowVoiced ? 1 : 0;
+  e.ringI = (e.ringI + 1) % e.ringN;
+
+  if (++e.hopsSinceTick * e.hopDur >= 0.1) { e.hopsSinceTick = 0; tick(); }
+}
+
+function voicedIn(sec) {
+  const e = engine;
+  const k = Math.min(e.ringN, Math.round(sec / e.hopDur));
+  let n = 0;
+  for (let i = 1; i <= k; i++) {
+    const idx = (e.ringI - i + e.ringN * 2) % e.ringN;
+    n += e.ring[idx];
+  }
+  return n * e.hopDur;
+}
+
+function tick() {
+  const e = engine;
+  const t0 = e.t - WINDOW;
+  while (e.syls.length && e.syls[0] < t0) e.syls.shift();
+  const voiced = voicedIn(WINDOW);
+  const span = Math.min(WINDOW, e.t);
+
+  if (voiced >= 1.6 && span > 2) {
+    const words = (e.syls.length * correction) / SYL_PER_WORD;
+    const raw = (words / span) * 60;
+    e.wpm = e.wpm == null ? raw : e.wpm + (raw - e.wpm) * 0.35;
+  } else if (voiced < 0.4) {
+    e.wpm = null;
+  }
+
+  const hi = PRESETS[preset].hi;
+  if (e.wpm != null && e.wpm > hi) e.hotTime += 0.1;
+  cueCheck();
+}
+
+/* ================= cueing ================= */
+
+let hotSince = null, lastCue = -999;
+
+function cueCheck() {
+  const e = engine, hi = PRESETS[preset].hi;
+  const over = e.wpm != null && e.wpm > hi;
+  if (over) { if (hotSince == null) hotSince = e.t; }
+  else hotSince = null;
+
+  const marathon = e.t - e.lastPauseT > 26 && e.voicedRun > 0.2;
+  const sustained = hotSince != null && e.t - hotSince > HOT_SUSTAIN;
+
+  if ((sustained || marathon) && e.t - lastCue > CUE_COOLDOWN) {
+    lastCue = e.t;
+    fireCue(sustained ? "fast" : "breath");
+  }
+}
+
+let cueUntil = 0;
+function fireCue(kind) {
+  cueUntil = performance.now() + 4200;
+  const cue = $("#cue");
+  cue.querySelector("strong").textContent = kind === "fast" ? "ease off" : "take a breath";
+  $("#cueSub").textContent = kind === "fast"
+    ? "finish the sentence, then pause"
+    : "you've been going a while";
+  cue.classList.add("on");
+  try { navigator.vibrate && navigator.vibrate([90, 70, 90]); } catch (err) {}
+}
+
+/* ================= screens ================= */
+
+function show(id) {
+  document.querySelectorAll(".screen").forEach((s) => s.classList.toggle("on", s.id === id));
+}
+
+$("#presets").addEventListener("click", (ev) => {
+  const b = ev.target.closest("button[data-p]");
+  if (!b) return;
+  preset = b.dataset.p;
+  save("cc.preset", preset);
+  syncPreset();
+});
+function syncPreset() {
+  document.querySelectorAll("#presets button").forEach((b) =>
+    b.setAttribute("aria-pressed", String(b.dataset.p === preset)));
+  const p = PRESETS[preset];
+  $("#bandLabel").textContent = "target " + p.lo + "–" + p.hi;
+}
+
+function micFailure(err) {
+  const note = $("#micNote");
+  note.hidden = false;
+  note.className = "note error";
+  const embedded = window.self !== window.top;
+  if (err && err.name === "NotAllowedError") {
+    note.innerHTML = embedded
+      ? "<b>The microphone is blocked in this embedded view.</b><span>Open the page in its own tab and the browser will ask you properly.</span>"
+      : "<b>Microphone permission was denied.</b><span>Allow the mic for this page in your browser's address-bar controls, then try again.</span>";
+  } else if (err && err.name === "NotFoundError") {
+    note.innerHTML = "<b>No microphone found.</b><span>Plug one in or pick a different input device, then try again.</span>";
+  } else {
+    note.innerHTML = "<b>The microphone couldn't be opened.</b><span>" +
+      ((err && err.message) || "Unknown error") + "</span>";
+  }
+  if (embedded) {
+    const btn = document.createElement("button");
+    btn.className = "btn ghost";
+    btn.style.alignSelf = "flex-start";
+    btn.style.marginTop = "6px";
+    btn.textContent = "Open in a new tab";
+    btn.onclick = () => window.open(location.href, "_blank", "noopener");
+    note.appendChild(btn);
+  }
+}
+
+/* ---------- calibration ---------- */
+
+let calTimerId = null, calT0 = 0;
+
+$("#calBtn").onclick = async () => {
+  try { await openMic(); } catch (e) { micFailure(e); return; }
+  $("#micNote").hidden = true;
+  show("s-cal");
+};
+$("#skipBtn").onclick = async () => {
+  try { await openMic(); } catch (e) { micFailure(e); return; }
+  $("#micNote").hidden = true;
+  beginSession();
+};
+$("#calSkip").onclick = () => { stopEngine(); beginSession(); };
+
+$("#calStart").onclick = () => {
+  resetMetrics();
+  engine.running = true;
+  calT0 = performance.now();
+  $("#calStart").classList.add("hidden");
+  $("#calDone").classList.remove("hidden");
+  $("#calNote").hidden = true;
+  calTimerId = setInterval(() => {
+    const s = (performance.now() - calT0) / 1000;
+    $("#calTimer").textContent = fmt(s);
+    $("#calLevel").style.width = clamp((engine.level + 60) / 45 * 100, 0, 100) + "%";
+  }, 80);
+};
+
+$("#calDone").onclick = () => {
+  engine.running = false;
+  clearInterval(calTimerId);
+  $("#calLevel").style.width = "0%";
+  $("#calStart").classList.remove("hidden");
+  $("#calDone").classList.add("hidden");
+
+  const secs = engine.t;
+  const peaks = engine.totalSyl;
+  const note = $("#calNote");
+  note.hidden = false;
+
+  if (secs < 8 || peaks < 25 || peaks > 130) {
+    note.className = "note error";
+    note.innerHTML = "<b>That didn't give a clean read.</b><span>Read the whole passage at a normal speaking volume, " +
+      "roughly 20–30 centimetres from the mic, then press <em>I'm done</em>.</span>";
+    return;
+  }
+
+  correction = clamp(PASSAGE.syllables / peaks, 0.55, 1.9);
+  save("cc.correction", correction);
+  const natural = Math.round((PASSAGE.words / secs) * 60);
+  if (natural >= 172) preset = "deliberate";
+  else if (natural >= 150) preset = "conversational";
+  save("cc.preset", preset);
+  syncPreset();
+
+  note.className = "note";
+  note.innerHTML = "<span>You read that at <b class='mono'>" + natural + " wpm</b>. " +
+    (natural >= 165
+      ? "That's brisk — the target is set to <b>" + PRESETS[preset].name.toLowerCase() +
+        "</b> so you have somewhere to aim."
+      : "Comfortably in range. Target set to <b>" + PRESETS[preset].name.toLowerCase() + "</b>.") +
+    "</span>";
+  setTimeout(beginSession, 1400);
+};
+
+/* ---------- session ---------- */
+
+let trace = [], full = [], sessionTimer = null, drawing = false;
+
+function beginSession() {
+  openMic().then(() => {
+    resetMetrics();
+    trace = []; full = [];
+    hotSince = null; lastCue = -999; cueUntil = 0;
+    engine.running = true;
+    engine.startedAt = Date.now();
+    document.body.classList.add("live");
+    $("#stopBtn").classList.remove("hidden");
+    $("#stealthBtn").classList.remove("hidden");
+    show("s-live");
+    sizeCanvas($("#trace"));
+    if (!drawing) { drawing = true; requestAnimationFrame(render); }
+    sessionTimer = setInterval(sample, 250);
+  }).catch(micFailure);
+}
+
+function sample() {
+  const pt = { t: engine.t, wpm: engine.wpm };
+  trace.push(pt);
+  const cut = engine.t - 92;
+  while (trace.length && trace[0].t < cut) trace.shift();
+  // the recap needs the whole session, thinned to one point a second
+  if (!full.length || pt.t - full[full.length - 1].t >= 1) full.push(pt);
+}
+
+function stopEngine() {
+  engine.running = false;
+  clearInterval(sessionTimer);
+  clearInterval(calTimerId);
+}
+
+$("#stopBtn").onclick = () => {
+  stopEngine();
+  document.body.classList.remove("live", "hot", "warm", "stealth");
+  $("#stopBtn").classList.add("hidden");
+  $("#stealthBtn").classList.add("hidden");
+  recap();
+};
+
+$("#stealthBtn").onclick = () => {
+  document.body.classList.toggle("stealth");
+  $("#stealthBtn").textContent = document.body.classList.contains("stealth") ? "Full view" : "Compact view";
+  sizeCanvas($("#trace"));
+};
+
+$("#againBtn").onclick = beginSession;
+$("#homeBtn").onclick = () => { show("s-start"); renderHistory(); };
+
+/* ---------- drawing ---------- */
+
+function sizeCanvas(cv) {
+  const r = cv.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const w = Math.max(1, Math.round(r.width * dpr));
+  const h = Math.max(1, Math.round(r.height * dpr));
+  const g = cv.getContext("2d");
+  // resizing the backing store clears it, so only do it when it really changed
+  if (cv.width !== w || cv.height !== h) {
+    cv.width = w; cv.height = h;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  return { g, w: r.width, h: r.height };
+}
+window.addEventListener("resize", () => { sizeCanvas($("#trace")); });
+
+const LOW = 80, HIGH = 230;
+
+let palette = {}, paletteAt = -1e9;
+function css(v) {
+  const now = performance.now();
+  if (now - paletteAt > 400) {
+    const cs = getComputedStyle(document.body);
+    ["--band", "--line", "--faint", "--good", "--hot"].forEach((k) => {
+      palette[k] = cs.getPropertyValue(k).trim();
+    });
+    paletteAt = now;
+  }
+  return palette[v] || "";
+}
+
+function plot(cv, data, span, live) {
+  const { g, w, h } = sizeCanvas(cv);
+  const p = PRESETS[preset];
+  const y = (wpm) => h - ((clamp(wpm, LOW, HIGH) - LOW) / (HIGH - LOW)) * h;
+  const t1 = data.length ? data[data.length - 1].t : 0;
+  // live: "now" is pinned to the right edge and the trace grows leftwards.
+  // static: the whole session is stretched across the full width.
+  const t0 = live ? t1 - span : (data.length ? data[0].t : 0);
+  const dur = live ? span : Math.max(t1 - t0, 1);
+  const padL = 2, padR = 11;
+  const x = (t) => padL + ((t - t0) / dur) * (w - padL - padR);
+
+  g.clearRect(0, 0, w, h);
+
+  // target band
+  g.fillStyle = css("--band");
+  g.fillRect(0, y(p.hi), w, y(p.lo) - y(p.hi));
+  g.strokeStyle = css("--line");
+  g.lineWidth = 1;
+  g.font = '400 9.5px "IBM Plex Mono", ui-monospace, monospace';
+  g.fillStyle = css("--faint");
+  [p.lo, p.hi].forEach((v) => {
+    const yy = y(v) + .5;
+    g.beginPath(); g.moveTo(0, yy); g.lineTo(w, yy); g.stroke();
+    g.fillText(String(v), 6, yy + (v === p.hi ? -5 : 11));
+  });
+
+  if (data.length < 2) {
+    g.fillStyle = css("--faint");
+    g.font = '500 11px "IBM Plex Mono", monospace';
+    g.fillText("waiting for speech", 12, h / 2);
+    return;
+  }
+
+  // the trace, drawn once in the calm colour then re-stroked above the
+  // target ceiling in the alarm colour, so the overshoot reads instantly
+  const path = new Path2D();
+  let pen = false;
+  data.forEach((d) => {
+    if (d.wpm == null) { pen = false; return; }
+    const px = x(d.t), py = y(d.wpm);
+    if (!pen) { path.moveTo(px, py); pen = true; } else path.lineTo(px, py);
+  });
+  g.lineWidth = 2; g.lineJoin = "round"; g.lineCap = "round";
+  g.strokeStyle = css("--good");
+  g.stroke(path);
+  g.save();
+  g.beginPath(); g.rect(0, 0, w, y(p.hi)); g.clip();
+  g.strokeStyle = css("--hot");
+  g.stroke(path);
+  g.restore();
+
+  const last = data[data.length - 1];
+  if (last.wpm != null) {
+    const px = x(last.t), py = y(last.wpm);
+    const hot = last.wpm > p.hi;
+    g.fillStyle = hot ? css("--hot") : css("--good");
+    g.globalAlpha = .18;
+    g.beginPath(); g.arc(px, py, 9, 0, 7); g.fill();
+    g.globalAlpha = 1;
+    g.beginPath(); g.arc(px, py, 3.2, 0, 7); g.fill();
+  }
+}
+
+function render() {
+  requestAnimationFrame(render);
+  if (!$("#s-live").classList.contains("on")) return;
+  const e = engine, p = PRESETS[preset];
+
+  const w = e.wpm;
+  $("#wpm").innerHTML = (w == null ? "—" : Math.round(w)) + '<span class="unit">wpm</span>';
+  let state = "", word = "Listening";
+  if (w != null) {
+    if (w > p.hi + 18) { state = "hot"; word = "Rushing"; }
+    else if (w > p.hi) { state = "hot"; word = "Too fast"; }
+    else if (w > p.hi - 12) { state = "warm"; word = "Upper edge"; }
+    else if (w < p.lo - 12) { state = ""; word = "Unhurried"; }
+    else { state = ""; word = "Clear"; }
+  }
+  document.body.classList.toggle("hot", state === "hot");
+  document.body.classList.toggle("warm", state === "warm");
+  $("#statusWord").textContent = word;
+
+  if (performance.now() > cueUntil) $("#cue").classList.remove("on");
+
+  plot($("#trace"), trace, 90, true);
+
+  const seg = e.t - e.segStart;
+  $("#segLen").textContent = fmt(seg);
+  const sp = e.t - e.lastPauseT;
+  const spEl = $("#sincePause");
+  spEl.textContent = sp.toFixed(1) + "s";
+  spEl.classList.toggle("flag", sp > 22);
+  const pct = e.t > 0 ? Math.round((e.hotTime / e.t) * 100) : 0;
+  const opEl = $("#overPct");
+  opEl.textContent = pct + "%";
+  opEl.classList.toggle("flag", pct > 25);
+  $("#elapsed").textContent = fmt(e.t);
+}
+
+function fmt(s) {
+  s = Math.max(0, Math.floor(s));
+  return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+}
+
+/* ---------- recap ---------- */
+
+function recap() {
+  const e = engine, p = PRESETS[preset];
+  const mins = Math.max(e.t / 60, 1 / 60);
+  const words = (e.totalSyl * correction) / SYL_PER_WORD;
+  const avg = e.t > 2 ? Math.round((words / e.t) * 60) : 0;
+  const overPct = e.t > 0 ? Math.round((e.hotTime / e.t) * 100) : 0;
+  const longest = Math.max(e.longestSeg, e.t - e.segStart);
+  const ppm = e.pauses / mins;
+
+  $("#rAvg").textContent = avg ? avg + " wpm" : "—";
+  $("#rOver").textContent = overPct + "%";
+  $("#rOver").classList.toggle("flag", overPct > 25);
+  $("#rRun").textContent = fmt(longest);
+  $("#rRun").classList.toggle("flag", longest > 120);
+  $("#rPauses").textContent = ppm.toFixed(1);
+
+  let verdict, advice;
+  if (e.t < 20) {
+    verdict = "Too short to judge.";
+    advice = "Run a full answer — a minute or two — and the numbers start meaning something.";
+  } else if (overPct > 35) {
+    verdict = "You spent most of it above the line.";
+    advice = "Pick one habit for the next run: land a full stop at the end of every sentence and let it sit for a beat. " +
+      "Pace follows punctuation more than it follows effort.";
+  } else if (overPct > 15) {
+    verdict = "Mostly steady, with some sprints.";
+    advice = "The bursts usually arrive with the part you know best. When you feel the material getting easy, that's the cue to slow down, not speed up.";
+  } else if (ppm < 4) {
+    verdict = "Good pace, thin on pauses.";
+    advice = "Your speed is fine but you're not giving anyone a door in. Aim for a real stop after each point you want remembered.";
+  } else {
+    verdict = "Nicely paced.";
+    advice = "This is the rhythm to reproduce. Notice you averaged " + avg + " wpm and paused about " +
+      ppm.toFixed(1) + " times a minute — that's your baseline now.";
+  }
+  if (longest > 150) {
+    advice += " One stretch ran " + fmt(longest) + " without a break; past about two minutes an answer stops landing however well it's paced.";
+  }
+  $("#recapVerdict").textContent = verdict;
+  $("#recapAdvice").textContent = advice;
+
+  show("s-recap");
+  requestAnimationFrame(() => plot($("#recapTrace"), full.length > 2 ? full : trace, 90, false));
+
+  if (e.t >= 20) {
+    const hist = load("cc.history", []);
+    hist.unshift({ d: Date.now(), len: Math.round(e.t), avg: avg, over: overPct, preset: preset });
+    save("cc.history", hist.slice(0, 8));
+  }
+}
+
+function renderHistory() {
+  const hist = load("cc.history", []);
+  const card = $("#historyCard");
+  if (!hist.length) { card.hidden = true; return; }
+  card.hidden = false;
+  $("#historyList").innerHTML = hist.map((h) => {
+    const d = new Date(h.d);
+    const day = d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    const time = d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+    return "<div><span>" + day + " · " + time + "</span><span><b>" + h.avg + " wpm</b> · " +
+      fmt(h.len) + " · " + h.over + "% over</span></div>";
+  }).join("");
+}
+
+/* ---------- boot ---------- */
+syncPreset();
+renderHistory();
+if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
+  const n = $("#micNote");
+  n.hidden = false; n.className = "note error";
+  n.innerHTML = "<b>This browser can't reach a microphone.</b><span>Chrome, Edge, Firefox or Safari on a page served over HTTPS will work.</span>";
+}
+window.addEventListener("beforeunload", () => { try { engine.stream && engine.stream.getTracks().forEach((t) => t.stop()); } catch (e) {} });
+</script>
